@@ -1,0 +1,60 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+h1 {
+    color: rgb(255, 0, 0);
+    font-size: 60px;
+    /* font-family: monospace; */
+    font-weight: 10;
+    /* font-style: italic; */
+    text-align: center;
+}
+
+body {
+    background-color: rgba(24, 23, 23, 0.865);
+}
+
+.parent {
+    display: flex;
+    align-items: center;
+    margin-top: 5%;
+    justify-content: space-evenly;
+}
+
+#dev1 {
+    height: 300px;
+    width: 300px;
+    border-radius: 5px;
+    background-image: url(https://images.unsplash.com/photo-1731484636246-ba9365148d60?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+    background-size: cover;
+    transition: 0.6s ease-in;
+}
+
+#dev1:hover {
+    background-position: center;
+}
+
+#dev2 {
+    height: 300px;
+    width: 300px;
+    border-radius: 5px;
+    background-image: url(https://img.goodfon.com/wallpaper/nbig/4/86/badfon-emma-uotson-emma-watson-5474.webp);
+    background-size: cover;
+    transition: 0.5s ease-in-out;
+}
+
+#dev2:hover {
+    background-position: center;
+}
+
+
+

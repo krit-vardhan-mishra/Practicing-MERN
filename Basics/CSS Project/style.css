@@ -1,0 +1,154 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background-color: #d5ff3f;
+}
+
+.header {
+    padding: 60px 100px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header .item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+    font-weight: 300;
+}
+
+.item #items{
+    justify-content: center;
+    align-items: center;
+    transition: all 0.5s ease-in;
+    border-radius: 15px;
+}
+
+#items:hover {
+    background-color: black;
+    color: #d5ff3f;
+}
+
+.header img {
+    max-width: 100%;
+    width: 112px;
+    height: 16px;
+    margin-left: 11.5%;
+}
+
+.item a{
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+    padding: 5px;
+}
+
+.mid {
+    position: relative;
+    display: flex;
+    margin-top: 40px;
+}
+
+.mid #heading{
+    width: 70%;
+    padding-left: 15%;
+    display: flex;
+}
+
+#heading h1{
+    color: #000;
+    text-transform: uppercase;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-family: Segoe Ui, sans-serif;
+    font-size: 165px;
+    font-weight: 700;
+    line-height: 170px;
+}
+
+#slider {
+    width: 320px;
+    height: 87px;
+    border: 5px solid black;
+    background-color: transparent;
+    border-radius: 50px;
+    margin-top: 30px;
+}
+
+#play-button {
+    width: 70px;
+    height: 70px;
+    background-color: black;
+    border-radius: 50px;
+    margin-left: 5px;
+    margin-top: 4px;
+    position: absolute;
+}
+
+#button {
+    position: relative;
+    width: 45px;
+    height: 45px;
+    background-color: transparent;
+    display: flex;
+    margin-top: 15px;
+    margin-left: 12px;
+    transition: 0.2s;
+}
+
+#button::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-radius: 5px;
+    border-left: 30px solid yellow;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    left: 10px;
+}
+
+#button:hover {
+    margin-left: 15px;
+}
+
+#text {
+    position: absolute;
+    bottom: 0;
+    right: 100px;
+    font-size: 35px;
+}
+
+.linkbar {
+    display: flex;
+    background-color: white;
+    margin-top: 50px;
+    padding-left: 15%;
+}
+
+.links a{
+    padding-right: 100px;
+}
+
+#world { 
+    width: 228.31px;
+    height: 48px;
+    background-color: aqua;
+    border-radius: 50px;
+}
+

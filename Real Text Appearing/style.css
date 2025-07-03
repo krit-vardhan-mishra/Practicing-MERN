@@ -1,0 +1,128 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #cec6c6;
+}
+
+#main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#search-container {
+    align-items: center;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#search-box {
+    padding-left: 10px;
+    border: 1px solid #141212;
+    align-items: center;
+    justify-content: center;
+    width: 250px;
+    height: 25px;
+    margin-right: 10px;
+    transition: .2s ease-in;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(137, 132, 132, 0.434);
+}
+
+#search-box:hover {
+    box-shadow: 0 4px 8px rgba(37, 34, 34, 0.434);
+}
+
+#search-button {
+    border: 1px solid #141212;
+    transition: 0.2s;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(137, 132, 132, 0.434);
+}
+
+#search-button:hover {
+    background-color: rgba(53, 223, 41, 0.862);
+    box-shadow: 0 4px 8px rgba(37, 34, 34, 0.434);
+}
+
+#search-button.stop-mode {
+    background-color: red;
+    color: white;
+    transition: 0.2;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 250px;
+    height: 10px;
+    background: linear-gradient(to right, #4964dc 0%, #ddd 0%);
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    border-radius: 50px;
+}
+
+input[type="range"]:hover {
+    opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #2b52fe;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4964dc;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+#display-box {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    width: 500px;
+    height: auto;
+    overflow-y: auto;
+    font-size: 18px;
+    line-height: 1.6;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(37, 34, 34, 0.434);
+    margin-top: 20px;
+}
+
+#display-box::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: auto;
+    background: black;
+    animation: blink 0.8s steps(2) infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}

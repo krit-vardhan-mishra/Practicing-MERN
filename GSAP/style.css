@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Cooperltbt";
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    align-items: center;
+    background-image: url(image.jpg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.main {
+    justify-content: center;
+    align-items: center;
+    background-color: aquamarine;
+    width: 100%;
+    height: 65px;
+    position: fixed;
+}
+
+.part2 {
+    margin-top: 10px;
+}
+
+.part2 a {
+    left: 25%;
+    margin-left: 50px;
+    margin-right: 70px;
+}
+
+.part2 > h1 {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+}
+
+.nav {
+    justify-content: center;
+    align-items: center;
+    background-color: aquamarine;
+    width: 100%;
+    height: 100%;
+}
+
+.btn {
+    margin: 15px;
+    /* margin-left: 10px; */
+    border-radius: 15px;
+    text-decoration: none;
+    background-color: #eeedeb;
+    padding: 10px 20px;
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);
+    color: black;
+    font-size: 20px;
+    font-weight: 1000;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: "";
+    background: #de9058cb;
+    width: 0;
+    height: 0;
+    position: absolute;
+    top: var(--posY);
+    left: var(--posX);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    transition: width 1s, height 1s;
+}
+
+.btn:hover::before{
+    width: 300px;
+    height: 300px;
+}
+
+.btn span{
+    position: relative;
+    z-index: 1;
+}
+
+.container {
+    text-align: center;
+    justify-items: center;
+    position: absolute;
+    margin-left: 25%;
+    margin-top: 25%;
+    width: 100%;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.153);
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    z-index: 1;
+}
+
+.title, .description {
+    position: relative;
+}
+
+.container::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    background-image: url('logo-header.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.3;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+h1, p {
+    margin: 10px;
+}
+
+.title {
+    text-decoration: underline;
+    font-size: 40px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.description {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #333;
+} 

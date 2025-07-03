@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Details</title>
+    <link rel="stylesheet" href="/details.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>Details of all Waiting Patients:</h2>
+        <br><br>
+
+        <div th:if="${message}">
+            <p th:text="${message}" style="color:red;"></p>
+        </div>
+
+        <div class="content-box">
+            <div class="patient-table" th:if="${not #lists.isEmpty(patients)}">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Problem</th>
+                            <th>Arrival Time</th>
+                            <th>Emergency Level</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        <tr th:each="patient : ${patients}">
+                            <td th:text="${patient.id}"></td>
+                            <td th:text="${patient.name}"></td>
+                            <td th:text="${patient.age}"></td>
+                            <td th:text="${patient.gender}"></td>
+                            <td th:text="${patient.problem}"></td>
+                            <td th:text="${#dates.format(patient.arrivalTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                            <td th:text="${patient.emergencyLevel}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <a th:href="@{/admin-login}" class="access">only access by the admins</a>
+            </div>
+
+            <div>
+                <a th:href="@{/}" class="btn">Back to Home</a>
+            </div>
+        </div>
+</body>
+</html>

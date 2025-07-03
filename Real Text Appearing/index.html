@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Text Display</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="main-container">
+
+        <div id="search-container">
+            <input type="text" id="search-box" placeholder="Search Wikipedia" />
+            <button id="search-button">Search</button>
+            <br><br>
+            <label for="word-limt">Word Limit: <span id="word-limit-display">10</span> Words</label>
+            <input type="range" id="word-limit" min="10" max="500" value="10" step="10" oninput="updateSliderBackground(this)"/> Limit: 500 Characters
+        </div>
+
+        <div id="display-box"></div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
