@@ -1,1 +1,5 @@
 node/node_modules
+node/.env
+
+freeCodeCamp/backend/node_modules
+freeCodeCamp/backend/.env
