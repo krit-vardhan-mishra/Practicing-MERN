@@ -3,3 +3,5 @@ node/node_modules/
 
 freeCodeCamp/backend/.env
 freeCodeCamp/backend/node_modules/
+
+freeCodeCamp/frontend/node_modules
