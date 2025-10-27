@@ -10,6 +10,7 @@ A modern real-time chat application built with React, Express, Socket.IO, and Po
 - ⚡ Fast development with Vite
 - 🎨 Beautiful UI with Tailwind CSS
 - 📱 Responsive design
+- 📹 1:1 Audio/Video calls (WebRTC)
 
 ## Tech Stack
 
@@ -115,6 +116,13 @@ real-time-chat-app/
 - User presence tracking
 - Message delivery status
 - Typing indicators
+
+### Audio/Video Calls (WebRTC)
+- Start a video or voice call from the chat header using the camera or phone icon
+- Peer-to-peer connection using WebRTC with Socket.IO signaling
+- Uses public STUN servers by default; for production you should configure a TURN server for reliability behind strict NATs/firewalls
+
+Configure TURN (optional) by setting your own ICE servers in `client/src/hooks/use-webrtc.ts`.
 
 ### Database
 - PostgreSQL with Neon (serverless)

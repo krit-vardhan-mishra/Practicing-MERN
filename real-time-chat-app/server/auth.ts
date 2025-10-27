@@ -2,11 +2,17 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
 import bcrypt from "bcryptjs";
-import { db } from "./db";
-import { users, type User as SelectUser, insertUserSchema } from "@shared/schema";
+import { db, pool } from "./db";
+import {
+  users,
+  type User as SelectUser,
+  insertUserSchema,
+} from "@shared/schema";
 import { eq } from "drizzle-orm";
+import nacl from "tweetnacl";
+import naclUtil from "tweetnacl-util";
 
 declare global {
   namespace Express {
@@ -14,24 +20,33 @@ declare global {
   }
 }
 
+export function generateIdentityKeyPair() {
+  const keyPair = nacl.box.keyPair();
+  return {
+    publicKey: naclUtil.encodeBase64(keyPair.publicKey),
+    secretKey: naclUtil.encodeBase64(keyPair.secretKey),
+  };
+}
+
 export function setupAuth(app: Express) {
-  const MemoryStore = createMemoryStore(session);
+  const PgStore = connectPg(session);
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "real-time-chat-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: {},
-    store: new MemoryStore({
-      checkPeriod: 86400000,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      httpOnly: true,
+      sameSite: "lax",
+    },
+    store: new PgStore({
+      pool: pool, // Use the existing PostgreSQL connection pool
+      tableName: "session", // Table name for storing sessions
+      createTableIfMissing: true, // Automatically create the session table
+      errorLog: console.error.bind(console), // Log errors
     }),
   };
-
-  if (app.get("env") === "production") {
-    app.set("trust proxy", 1);
-    sessionSettings.cookie = {
-      secure: true,
-    };
-  }
 
   app.use(session(sessionSettings));
   app.use(passport.initialize());
@@ -45,15 +60,11 @@ export function setupAuth(app: Express) {
           .from(users)
           .where(eq(users.username, username))
           .limit(1);
+        if (!user) return done(null, false, { message: "Incorrect username" });
 
-        if (!user) {
-          return done(null, false, { message: "Incorrect username" });
-        }
-        
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        if (!isMatch)
           return done(null, false, { message: "Incorrect password" });
-        }
 
         return done(null, user);
       } catch (err) {
@@ -62,10 +73,7 @@ export function setupAuth(app: Express) {
     })
   );
 
-  passport.serializeUser((user, done) => {
-    done(null, user.id);
-  });
-
+  passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     try {
       const [user] = await db
@@ -83,41 +91,35 @@ export function setupAuth(app: Express) {
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
-        return res
-          .status(400)
-          .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+        console.error("Validation error:", result.error.errors);
+        return res.status(400).send("Invalid input: " + result.error.errors.map(e => e.message).join(", "));
       }
 
-      const { username, password } = result.data;
+      const { username, password, fullName, email, avatar, gender } = result.data;
 
-      // Check if user exists
       const [existingUser] = await db
         .select()
         .from(users)
         .where(eq(users.username, username))
         .limit(1);
+      if (existingUser) return res.status(400).send("Username already exists");
 
-      if (existingUser) {
-        return res.status(400).send("Username already exists");
-      }
-
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create user
       const [newUser] = await db
         .insert(users)
         .values({
           username,
           password: hashedPassword,
-          fullName: result.data.fullName,
-          email: result.data.email,
-          avatar: result.data.avatar,
+          fullName,
+          email,
+          avatar,
+          gender,
         })
         .returning();
 
       req.login(newUser, (err) => {
         if (err) {
+          console.error("Login error after registration:", err);
           return next(err);
         }
         return res.json({
@@ -128,29 +130,23 @@ export function setupAuth(app: Express) {
             fullName: newUser.fullName,
             email: newUser.email,
             avatar: newUser.avatar,
+            gender: newUser.gender,
           },
         });
       });
     } catch (error) {
+      console.error("Registration error:", error);
       next(error);
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: Express.User, info: any) => {
-      if (err) {
-        return next(err);
-      }
-
-      if (!user) {
-        return res.status(400).send(info.message ?? "Login failed");
-      }
+   app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: Express.User, info: { message?: string }) => {
+      if (err) return next(err);
+      if (!user) return res.status(400).send(info.message ?? "Login failed");
 
       req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-
+        if (err) return next(err);
         return res.json({
           message: "Login successful",
           user: {
@@ -159,6 +155,7 @@ export function setupAuth(app: Express) {
             fullName: user.fullName,
             email: user.email,
             avatar: user.avatar,
+            gender: user.gender,
           },
         });
       });

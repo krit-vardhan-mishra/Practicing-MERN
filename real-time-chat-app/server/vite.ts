@@ -22,7 +22,6 @@ export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
-    allowedHosts: true,
   };
 
   const vite = await createViteServer({
@@ -42,6 +41,11 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+
+    // Skip GraphQL and API routes
+    if (url.startsWith("/api") || url.startsWith("/graphql")) {
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(
@@ -72,7 +76,11 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  app.use("*", (_req, res) => {
+  app.use("*", (req, res, next) => {
+    // Skip GraphQL and API routes
+    if (req.originalUrl.startsWith("/api") || req.originalUrl.startsWith("/graphql")) {
+      return next();
+    }
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
