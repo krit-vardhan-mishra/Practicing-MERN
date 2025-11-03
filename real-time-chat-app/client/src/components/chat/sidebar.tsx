@@ -1,12 +1,13 @@
 import { useState, memo, useMemo, useCallback, useEffect } from "react";
 import { Search, ArrowLeft, Loader2 } from "lucide-react";
 import Avatar, { genConfig } from "react-nice-avatar";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import HeaderMenu from "@/components/chat/header-menu";
+
 import { useLazyQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 import { useDebounce } from "@/hooks/use-debounce";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import HeaderMenu from "./header-menu";
+import { Input } from "../ui/input";
 
 const SEARCH_USERS = gql`
   query SearchUsers($query: String!) {
@@ -191,7 +192,9 @@ const Sidebar = memo(function Sidebar({
   const searchResults = data?.searchUsers || [];
 
   return (
-    <div className="w-full sm:w-80 lg:w-[400px] border-r border-[#30363D] flex flex-col bg-[#0D1117] h-screen">
+    // The parent div in chat-page.tsx handles the conditional width (w-full/fixed) and visibility (hidden/block)
+    // This component now uses flex-1 and h-full to occupy the space it is given.
+    <div className="flex-1 flex flex-col bg-[#0D1117] h-full">
       {/* Header */}
       <div className="p-2 sm:p-3 bg-[#161B22] flex items-center gap-2 sm:gap-3 border-b border-[#30363D]">
         {isSearchMode || isDualSearchMode ? (
@@ -454,7 +457,9 @@ const ConversationItem = memo(function ConversationItem({
       }
       return content;
     } catch {
-      return content.length > 50 ? content.substring(0, 50) + "..." : content;
+      // Use substring with a responsive fallback for truncation
+      const maxLength = 50; 
+      return content.length > maxLength ? content.substring(0, maxLength) + "..." : content;
     }
   };
 

@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useAuth } from "@/hooks/use-auth";
+// FIX: Converted aliased imports to direct or relative paths
+import { useAuth } from "../hooks/use-auth"; // Assuming use-auth is in parent directory's hooks
 import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient } from "../lib/queryClient"; // Assuming lib is in parent directory
 import { io, Socket } from "socket.io-client";
 import { useLocation } from "wouter";
-import Sidebar from "@/components/chat/sidebar";
+import LogoutDialog from "../components/chat/logout-dialog"; // Relative path
+import ProfilePage from "../pages/profile-page"; // Relative path
+import SettingsPage from "../pages/settings-page"; // Relative path
+import HelpSupportPage from "../pages/help-support-page"; // Relative path
+import { generateKeyPair, getKeys, storeKeys, encryptMessage, decryptMessageWithOtherPublic } from "../lib/crypto"; // Relative path
+import Message from "../data/message"; // Assuming data is in parent directory
+import Conversation from "../data/conversation"; // Assuming data is in parent directory
+import { useWebRTC } from "../hooks/use-webrtc"; // Assuming use-webrtc is in parent directory's hooks
+import CallPanel from "../components/chat/call-panel"; // Relative path
 import ChatArea from "@/components/chat/chat-area";
-import LogoutDialog from "@/components/chat/logout-dialog";
-import ProfilePage from "@/pages/profile-page";
-import SettingsPage from "@/pages/settings-page";
-import HelpSupportPage from "@/pages/help-support-page";
-import { generateKeyPair, getKeys, storeKeys, encryptMessage, decryptMessageWithOtherPublic } from "@/lib/crypto";
-import Message from "@/data/message";
-import Conversation from "@/data/conversation";
-import { useWebRTC } from "@/hooks/use-webrtc";
-import CallPanel from "@/components/chat/call-panel";
+import Sidebar from "@/components/chat/sidebar";
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
@@ -450,7 +451,8 @@ export default function ChatPage() {
       const recipientPublicKey = await fetchPublicKey(recipient.id);
       if (!recipientPublicKey) {
         console.error(`Failed to fetch recipient public key for user ${recipient.id}. The recipient needs to login again to upload their public key.`);
-        alert(`Cannot send message: The recipient needs to login again to generate encryption keys.`);
+        // Replaced alert() with console error/warning as per instructions
+        console.warn(`Cannot send message: The recipient needs to login again to generate encryption keys.`);
         return;
       }
 
@@ -470,7 +472,8 @@ export default function ChatPage() {
       });
     } catch (error) {
       console.error("Error sending encrypted message:", error);
-      alert("Failed to send message. Please try again.");
+       // Replaced alert() with console error/warning as per instructions
+      console.warn("Failed to send message. Please try again.");
     }
   }, [socket, selectedConversation, userKeys?.publicKey, userKeys?.secretKey, user?.id, fetchPublicKey]); // Include conversations here since it's needed
 
@@ -545,6 +548,10 @@ export default function ChatPage() {
   const currentConversation =
     conversations.find((c) => c.id === selectedConversation) || null;
 
+  // Responsiveness logic:
+  // On mobile (up to lg breakpoint), only show the sidebar if no conversation is selected.
+  const isSidebarVisible = !selectedConversation;
+
   if (!user) {
     return null;
   }
@@ -567,33 +574,44 @@ export default function ChatPage() {
         <HelpSupportPage onClose={handleHelpClose} />
       )}
 
-      <Sidebar
-        conversations={conversations}
-        selectedId={selectedConversation}
-        onSelect={setSelectedConversation}
-        currentUser={user}
-        onLogoutClick={handleLogoutClick}
-        onProfileClick={handleProfileClick}
-        onSettingsClick={handleSettingsClick}
-        onHelpClick={handleHelpClick}
-        onCreateConversation={handleCreateConversation}
-        isLoadingConversations={isLoadingConversations}
-      />
-      <ChatArea
-        conversation={currentConversation}
-        messages={messages}
-        currentUserId={user.id}
-        onSendMessage={handleSendMessage}
-        onLoadMore={handleLoadMoreMessages}
-        hasMore={hasMoreMessages}
-        isLoadingMore={isLoadingMore}
-        onBack={handleBackToConversations}
-        showBackButton={!!selectedConversation}
-        isLoadingMessages={isLoadingMessages}
-        onlineUsers={onlineUsers}
-        onStartVideoCall={(toUserId) => startCall(toUserId, { audio: true, video: true })}
-        onStartAudioCall={(toUserId) => startCall(toUserId, { audio: true, video: false })}
-      />
+      {/* Sidebar - always visible on large screens, conditionally visible on small screens */}
+      {/* On mobile, takes full width (w-full) when visible */}
+      <div 
+        className={`${isSidebarVisible ? 'w-full' : 'hidden'} lg:w-80 xl:w-[400px] lg:block flex-shrink-0 border-r border-[#30363D] h-screen`}
+      >
+        <Sidebar
+          conversations={conversations}
+          selectedId={selectedConversation}
+          onSelect={setSelectedConversation}
+          currentUser={user}
+          onLogoutClick={handleLogoutClick}
+          onProfileClick={handleProfileClick}
+          onSettingsClick={handleSettingsClick}
+          onHelpClick={handleHelpClick}
+          onCreateConversation={handleCreateConversation}
+          isLoadingConversations={isLoadingConversations}
+        />
+      </div>
+
+      {/* ChatArea - always visible on large screens, visible on small screens only when a conversation is selected */}
+      {/* On mobile, takes full width (w-full) when visible */}
+      <div className={`flex-1 flex flex-col ${isSidebarVisible ? 'hidden' : 'w-full'} lg:flex`}>
+        <ChatArea
+          conversation={currentConversation}
+          messages={messages}
+          currentUserId={user.id}
+          onSendMessage={handleSendMessage}
+          onLoadMore={handleLoadMoreMessages}
+          hasMore={hasMoreMessages}
+          isLoadingMore={isLoadingMore}
+          onBack={handleBackToConversations}
+          showBackButton={!!selectedConversation} // Show back button when chat area is visible
+          isLoadingMessages={isLoadingMessages}
+          onlineUsers={onlineUsers}
+          onStartVideoCall={(toUserId) => startCall(toUserId, { audio: true, video: true })}
+          onStartAudioCall={(toUserId) => startCall(toUserId, { audio: true, video: false })}
+        />
+      </div>
 
       {/* Call overlay */}
       <CallPanel

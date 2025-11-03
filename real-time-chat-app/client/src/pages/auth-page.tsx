@@ -83,22 +83,22 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0D1117]">
-      <div className="w-full max-w-md p-8 space-y-6 bg-[#161B22] rounded-xl shadow-2xl border border-[#30363D]">
+    <div className="min-h-screen flex items-center justify-center bg-[#0D1117] px-4 py-8">
+      <div className="w-full max-w-md p-6 sm:p-8 space-y-4 sm:space-y-6 bg-[#161B22] rounded-xl shadow-2xl border border-[#30363D]">
         {/* Logo/Brand */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#238636] rounded-xl mb-4">
-            <MessageSquare className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-[#238636] rounded-xl mb-3 sm:mb-4">
+            <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-[#C9D1D9]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#C9D1D9]">
             {state.isLogin ? "Welcome Back" : "Create Account"}
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-400">
             {state.isLogin ? "Sign in to your real-time chat" : "Join the conversation today"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {!state.isLogin && (
             <>
               <div>
@@ -144,18 +144,18 @@ export default function AuthPage() {
                 <label className="block text-sm font-medium text-[#C9D1D9] mb-2">
                   Avatar (Optional)
                 </label>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
                   {avatar && (
-                    <Avatar 
-                      className="w-16 h-16 rounded-full ring-2 ring-[#30363D]" 
-                      {...JSON.parse(avatar)} 
+                    <Avatar
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full ring-2 ring-[#30363D] flex-shrink-0"
+                      {...JSON.parse(avatar)}
                     />
                   )}
                   <Button
                     type="button"
                     onClick={() => setState((prev) => ({ ...prev, showAvatarEditor: true }))}
                     variant="outline"
-                    className="bg-[#0D1117] border-[#30363D] text-[#C9D1D9] hover:bg-[#30363D] hover:text-white"
+                    className="bg-[#0D1117] border-[#30363D] text-[#C9D1D9] hover:bg-[#30363D] hover:text-white w-full sm:w-auto"
                   >
                     <User className="w-4 h-4 mr-2" />
                     {avatar ? "Edit Avatar" : "Create Avatar"}
@@ -218,7 +218,7 @@ export default function AuthPage() {
           <Button
             type="submit"
             disabled={state.isLoading}
-            className="w-full bg-[#238636] hover:bg-[#238636]/90 text-white font-medium"
+            className="w-full bg-[#238636] hover:bg-[#238636]/90 text-white font-medium h-10 sm:h-11 text-sm sm:text-base"
           >
             {state.isLoading ? "Please wait..." : state.isLogin ? "Sign In" : "Sign Up"}
           </Button>
