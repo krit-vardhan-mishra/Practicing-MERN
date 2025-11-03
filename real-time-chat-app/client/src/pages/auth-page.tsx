@@ -5,7 +5,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, Eye, EyeOff, User } from "lucide-react";
-import Avatar, { genConfig } from "react-nice-avatar";
+import Avatar from "react-nice-avatar";
 import AvatarEditor from "@/components/avatar-editor";
 
 interface AuthFormData {
@@ -55,12 +55,15 @@ export default function AuthPage() {
     setState((prev) => ({ ...prev, error: "", isLoading: true }));
 
     try {
+      // Force username to lowercase to avoid case issues in DB and login
+      const username = (data.username || "").trim().toLowerCase();
+      const password = data.password;
       if (state.isLogin) {
-        await login(data.username, data.password);
+        await login(username, password);
       } else {
         // Generate default avatar based on gender if not selected
         const finalAvatar = data.avatar || (data.gender ? JSON.stringify({ sex: data.gender === "male" ? "man" : "woman" }) : "");
-        await register(data.username, data.password, data.fullName, data.email, finalAvatar, data.gender);
+        await register(username, password, data.fullName, data.email, finalAvatar, data.gender);
       }
       setLocation("/");
     } catch (err: any) {

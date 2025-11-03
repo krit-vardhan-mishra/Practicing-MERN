@@ -97,7 +97,10 @@ export default function ChatPage() {
 
   // Helper function to decrypt a message (memoized with stable dependencies)
   const decryptMessageContent = useCallback(async (message: Message): Promise<Message> => {
-    if (!userKeys) return message;
+    if (!userKeys) {
+      console.warn("[decrypt] No userKeys available for message:", message.id);
+      return { ...message, content: "[No encryption keys - please login again]" };
+    }
 
     // Check if the message is already plain text (e.g., friendly error message)
     // If content doesn't start with '{' it's not JSON, return as-is
@@ -110,10 +113,11 @@ export default function ChatPage() {
       
       // If it doesn't have encrypted/nonce, it's already decrypted or plain text
       if (!parsed.encrypted || !parsed.nonce) {
+        console.warn("[decrypt] Message missing encrypted/nonce fields:", message.id);
         return message;
       }
 
-  const { encrypted, nonce } = parsed;
+      const { encrypted, nonce } = parsed;
       let decryptedContent: string;
 
       if (message.senderId === user?.id) {
@@ -121,7 +125,10 @@ export default function ChatPage() {
         const conversation = conversationsRef.current.find(c => c.id === message.conversationId);
         const recipient = conversation?.participants.find((p) => p.id !== user?.id);
         
-        if (!recipient) return message;
+        if (!recipient) {
+          console.error("[decrypt] No recipient found for own message:", message.id);
+          return { ...message, content: "[Error: Cannot find recipient]" };
+        }
         
         const recipientPublicKey = await fetchPublicKey(recipient.id);
         if (!recipientPublicKey) {
@@ -130,6 +137,7 @@ export default function ChatPage() {
           return { ...message, content: `${name} has no public key, user must login again` };
         }
 
+        console.debug("[decrypt] Decrypting own message:", message.id);
         decryptedContent = decryptMessageWithOtherPublic(
           encrypted,
           nonce,
@@ -145,9 +153,11 @@ export default function ChatPage() {
 
         if (!senderPublicKey) {
           const name = sender?.fullName || sender?.username || `User ${message.senderId}`;
+          console.error("[decrypt] No public key for sender:", message.senderId);
           return { ...message, content: `${name} has no public key, user must login again` };
         }
 
+        console.debug("[decrypt] Decrypting message from:", message.senderId);
         decryptedContent = decryptMessageWithOtherPublic(
           encrypted,
           nonce,
@@ -156,12 +166,16 @@ export default function ChatPage() {
         );
       }
 
+      console.debug("[decrypt] Successfully decrypted message:", message.id);
       return { ...message, content: decryptedContent };
     } catch (error) {
-      console.error("Failed to decrypt message:", error);
-      // If JSON parsing fails or decryption fails, return original content
-      // This handles cases where content is already plain text
-      return message;
+      console.error("Failed to decrypt message:", error, "message:", message.id);
+      // Check if it's a key mismatch (user regenerated keys)
+      if (error instanceof Error && error.message === "Decryption failed") {
+        return { ...message, content: "[🔒 This message was encrypted with old keys - user needs to resend]" };
+      }
+      // Show a user-friendly error instead of raw encrypted JSON
+      return { ...message, content: "[Message decryption failed - encryption keys may be mismatched]" };
     }
   }, [userKeys?.publicKey, userKeys?.secretKey, user?.id, fetchPublicKey]); // Use stable primitive dependencies
 
@@ -203,6 +217,11 @@ export default function ChatPage() {
     endCall,
   } = useWebRTC(socket, user?.id);
 
+  // Debug: log call state transitions
+  useEffect(() => {
+    console.debug("[ChatPage] callState", callState);
+  }, [callState]);
+
   // Socket.io setup
   useEffect(() => {
     if (!user || !userKeys) return;
@@ -212,10 +231,12 @@ export default function ChatPage() {
     });
 
     newSocket.on("connect", () => {
-      console.log("Connected to socket");
+      console.log("Connected to socket", { id: newSocket.id });
     });
 
     newSocket.on("new_message", async (message: Message) => {
+      console.debug("[new_message] Received:", { id: message.id, senderId: message.senderId, conversationId: message.conversationId });
+      
       // Decrypt the message content if it's from another user
       if (message.senderId !== user.id && userKeys) {
         const senderPublicKey = await fetchPublicKey(message.senderId);
@@ -225,52 +246,68 @@ export default function ChatPage() {
 
         if (!senderPublicKey) {
           const name = sender?.fullName || sender?.username || `User ${message.senderId}`;
+          console.error("[new_message] No public key for sender:", message.senderId);
           message.content = `${name} has no public key, user must login again`;
         } else {
           try {
             // Parse the encrypted payload
-            const { encrypted, nonce } = JSON.parse(message.content);
-
-            const decryptedContent = decryptMessageWithOtherPublic(
-              encrypted,
-              nonce,
-              senderPublicKey,
-              userKeys.secretKey
-            );
-            message.content = decryptedContent;
+            const parsed = JSON.parse(message.content);
+            if (!parsed.encrypted || !parsed.nonce) {
+              console.warn("[new_message] Message missing encrypted fields");
+            } else {
+              const { encrypted, nonce } = parsed;
+              const decryptedContent = decryptMessageWithOtherPublic(
+                encrypted,
+                nonce,
+                senderPublicKey,
+                userKeys.secretKey
+              );
+              message.content = decryptedContent;
+              console.debug("[new_message] Decrypted message from sender:", message.senderId);
+            }
           } catch (error) {
-            console.error("Failed to decrypt message:", error);
-            message.content = "[Encrypted message - decryption failed]";
+            console.error("Failed to decrypt incoming message:", error);
+            message.content = "[Message decryption failed - encryption keys may be mismatched]";
           }
         }
       } else if (message.senderId === user.id && userKeys) {
         // For own messages, we need to decrypt them as well since they're encrypted
         try {
-          const { encrypted, nonce } = JSON.parse(message.content);
-          // Get conversation from current state via ref
-          const conversation = conversationsRef.current.find(c => c.id === message.conversationId);
-          const recipient = conversation?.participants.find((p) => p.id !== user.id);
-          
-          if (recipient) {
-            const recipientPublicKey = await fetchPublicKey(recipient.id);
-            if (!recipientPublicKey) {
-              const name = recipient.fullName || recipient.username || `User ${recipient.id}`;
-              message.content = `${name} has no public key, user must login again`;
-            } else {
-              // For own messages, decrypt using recipient's public key and own secret key
-              const decryptedContent = decryptMessageWithOtherPublic(
-                encrypted,
-                nonce,
-                recipientPublicKey,
-                userKeys.secretKey
-              );
-              message.content = decryptedContent;
+          const parsed = JSON.parse(message.content);
+          if (!parsed.encrypted || !parsed.nonce) {
+            console.warn("[new_message] Own message missing encrypted fields");
+          } else {
+            const { encrypted, nonce } = parsed;
+            // Get conversation from current state via ref
+            const conversation = conversationsRef.current.find(c => c.id === message.conversationId);
+            const recipient = conversation?.participants.find((p) => p.id !== user.id);
+            
+            if (recipient) {
+              const recipientPublicKey = await fetchPublicKey(recipient.id);
+              if (!recipientPublicKey) {
+                const name = recipient.fullName || recipient.username || `User ${recipient.id}`;
+                console.error("[new_message] No public key for recipient:", recipient.id);
+                message.content = `${name} has no public key, user must login again`;
+              } else {
+                // For own messages, decrypt using recipient's public key and own secret key
+                const decryptedContent = decryptMessageWithOtherPublic(
+                  encrypted,
+                  nonce,
+                  recipientPublicKey,
+                  userKeys.secretKey
+                );
+                message.content = decryptedContent;
+                console.debug("[new_message] Decrypted own message");
+              }
             }
           }
         } catch (error) {
           console.error("Failed to decrypt own message:", error);
-          message.content = "[Encrypted message - decryption failed]";
+          message.content = "[Message decryption failed - encryption keys may be mismatched]";
         }
+      } else if (!userKeys) {
+        console.error("[new_message] No userKeys available");
+        message.content = "[No encryption keys - please login again]";
       }
 
       if (message.conversationId === selectedConversation) {
@@ -571,6 +608,7 @@ export default function ChatPage() {
           const userInfo = foundConv?.participants.find((p) => p.id === peerId);
           return userInfo ? { id: userInfo.id, name: userInfo.fullName || userInfo.username || `User ${userInfo.id}` } : { id: peerId, name: `User ${peerId}` };
         })()}
+        currentUserName={user.fullName || user.username}
         localStreamRef={localStream}
         remoteStreamRef={remoteStream}
         onAccept={() => acceptRinging()}

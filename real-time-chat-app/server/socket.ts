@@ -165,6 +165,7 @@ export function setupSocket(io: IOServer) {
         try {
           if (!socket.userId) return socket.emit("error", { message: "Not authenticated" });
           const { toUserId, offer, media } = payload;
+          console.log("[signaling] call_user", { fromUserId: socket.userId, toUserId, media, hasSdp: !!offer?.type });
           io.to(`user:${toUserId}`).emit("incoming_call", {
             fromUserId: socket.userId,
             offer,
@@ -184,6 +185,7 @@ export function setupSocket(io: IOServer) {
         try {
           if (!socket.userId) return socket.emit("error", { message: "Not authenticated" });
           const { toUserId, answer } = payload;
+          console.log("[signaling] answer_call", { fromUserId: socket.userId, toUserId, hasSdp: !!answer?.type });
           io.to(`user:${toUserId}`).emit("call_answer", {
             fromUserId: socket.userId,
             answer,
@@ -200,6 +202,7 @@ export function setupSocket(io: IOServer) {
       try {
         if (!socket.userId) return socket.emit("error", { message: "Not authenticated" });
         const { toUserId, reason } = payload;
+        console.log("[signaling] reject_call", { fromUserId: socket.userId, toUserId, reason });
         io.to(`user:${toUserId}`).emit("call_rejected", {
           fromUserId: socket.userId,
           reason,
@@ -216,6 +219,7 @@ export function setupSocket(io: IOServer) {
         try {
           if (!socket.userId) return socket.emit("error", { message: "Not authenticated" });
           const { toUserId, candidate } = payload;
+          console.log("[signaling] ice_candidate", { fromUserId: socket.userId, toUserId, hasCandidate: !!candidate?.candidate });
           io.to(`user:${toUserId}`).emit("ice_candidate", {
             fromUserId: socket.userId,
             candidate,
@@ -231,6 +235,7 @@ export function setupSocket(io: IOServer) {
       try {
         if (!socket.userId) return socket.emit("error", { message: "Not authenticated" });
         const { toUserId } = payload;
+        console.log("[signaling] end_call", { fromUserId: socket.userId, toUserId });
         io.to(`user:${toUserId}`).emit("call_ended", {
           fromUserId: socket.userId,
         });

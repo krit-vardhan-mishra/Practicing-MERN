@@ -10,7 +10,7 @@ import {
   type User as SelectUser,
   insertUserSchema,
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import nacl from "tweetnacl";
 import naclUtil from "tweetnacl-util";
 
@@ -55,10 +55,12 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        // Normalize username to lowercase for consistent login
+        const normUsername = (username || "").toLowerCase();
         const [user] = await db
           .select()
           .from(users)
-          .where(eq(users.username, username))
+          .where(sql`lower(${users.username}) = ${normUsername}`)
           .limit(1);
         if (!user) return done(null, false, { message: "Incorrect username" });
 
@@ -95,12 +97,14 @@ export function setupAuth(app: Express) {
         return res.status(400).send("Invalid input: " + result.error.errors.map(e => e.message).join(", "));
       }
 
-      const { username, password, fullName, email, avatar, gender } = result.data;
+      let { username, password, fullName, email, avatar, gender } = result.data;
+      // Normalize username to lowercase for storage
+      username = (username || "").toLowerCase();
 
       const [existingUser] = await db
         .select()
         .from(users)
-        .where(eq(users.username, username))
+        .where(sql`lower(${users.username}) = ${username}`)
         .limit(1);
       if (existingUser) return res.status(400).send("Username already exists");
 
